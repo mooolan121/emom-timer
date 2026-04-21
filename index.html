@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EMOM – Every Minute On the Minute</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -489,83 +490,57 @@ let currentMinute = 0; // 0-indexed, 0–19
 let running = false;
 let paused = false;
 
-// Audio — Web Audio API, Safari-safe
-// AudioContext is created synchronously inside the first user gesture (startTimer)
-// and stored globally. All subsequent sounds reuse it.
-let _ac = null;
+// Audio — Tone.js Salamander Grand Piano sampler
+// Loaded from CDN, works on HTTPS (Vercel)
+let _sampler = null;
+let _toneReady = false;
 
-function _getAC() {
-  if (!_ac) {
-    _ac = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  return _ac;
-}
-
-// Call this synchronously inside a click handler to unlock audio on Safari
 function initAudio() {
-  const ac = _getAC();
-  if (ac.state === 'suspended') {
-    return ac.resume();
-  }
-  return Promise.resolve();
-}
-
-function _playTone(freqs) {
-  // sine wave + soft attack/release = warm, gentle tone
-  const ac = _getAC();
-  if (!ac) return;
-  freqs.forEach(({f, start, end, vol}) => {
-    const osc  = ac.createOscillator();
-    const gain = ac.createGain();
-    // Add a subtle harmonics layer for warmth without harshness
-    osc.type = 'sine';
-    osc.frequency.value = f;
-    osc.connect(gain);
-    gain.connect(ac.destination);
-    const t0 = ac.currentTime + start;
-    const t1 = ac.currentTime + end;
-    const attack = Math.min(0.04, (t1 - t0) * 0.15);
-    const release = Math.min(0.12, (t1 - t0) * 0.4);
-    gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(vol, t0 + attack);   // soft attack
-    gain.gain.setValueAtTime(vol, t1 - release);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t1);    // smooth release
-    osc.start(t0);
-    osc.stop(t1 + 0.01);
+  // Must be called synchronously in a user gesture to start Tone.js
+  if (_toneReady) return Promise.resolve();
+  return Tone.start().then(() => {
+    _sampler = new Tone.Sampler({
+      urls: {
+        C4: "C4.mp3", E4: "E4.mp3", G4: "G4.mp3",
+        C5: "C5.mp3", E5: "E5.mp3", G5: "G5.mp3",
+        C6: "C6.mp3",
+      },
+      release: 2.5,
+      baseUrl: "https://tonejs.github.io/audio/salamander/",
+    }).toDestination();
+    _toneReady = true;
   });
 }
 
+function _note(note, duration, velocity, delay) {
+  if (!_sampler || !_toneReady) return;
+  const time = Tone.now() + (delay || 0);
+  _sampler.triggerAttackRelease(note, duration, time, velocity);
+}
+
 function playSound(name) {
-  const ac = _getAC();
-  if (!ac) return;
+  if (!_sampler || !_toneReady) return;
   if (name === 'tick') {
-    // Soft low dong
-    _playTone([{f:370, start:0, end:0.18, vol:0.35}]);
+    // Single soft low note
+    _note('G3', '8n', 0.25, 0);
   } else if (name === 'signal') {
-    // Three warm ascending tones
-    _playTone([
-      {f:523, start:0,   end:0.22, vol:0.5},
-      {f:659, start:0.25, end:0.47, vol:0.5},
-      {f:784, start:0.5,  end:0.78, vol:0.55},
-    ]);
+    // Soft ascending three-note phrase
+    _note('C4', '4n', 0.3,  0);
+    _note('E4', '4n', 0.28, 0.22);
+    _note('G4', '2n', 0.32, 0.44);
   } else if (name === 'go') {
-    // Warm uplifting chord
-    _playTone([
-      {f:523, start:0, end:0.5, vol:0.45},
-      {f:659, start:0, end:0.5, vol:0.35},
-      {f:784, start:0, end:0.5, vol:0.3},
-    ]);
+    // Warm encouraging chord
+    _note('C4', '2n', 0.28, 0);
+    _note('E4', '2n', 0.22, 0);
+    _note('G4', '2n', 0.2,  0);
   } else if (name === 'finish') {
     // Gentle triumphant arpeggio
-    _playTone([
-      {f:523,  start:0,    end:0.28, vol:0.45},
-      {f:659,  start:0.3,  end:0.58, vol:0.45},
-      {f:784,  start:0.6,  end:0.88, vol:0.45},
-      {f:1046, start:0.9,  end:1.4,  vol:0.5},
-    ]);
+    _note('C4', '4n', 0.3,  0);
+    _note('E4', '4n', 0.28, 0.2);
+    _note('G4', '4n', 0.28, 0.4);
+    _note('C5', '2n', 0.35, 0.6);
   }
-};
-
+}
 
 // Wake Lock
 let wakeLock = null;
@@ -752,8 +727,16 @@ let countdownInterval = null;
 function startTimer() {
   if (running) return;
 
-  // Safari: AudioContext MUST be created/resumed synchronously in the click handler
-  initAudio();
+  // Start Tone.js + load piano samples, then begin countdown
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStart').textContent = '⏳ Laddar...';
+  initAudio().then(() => {
+    document.getElementById('btnStart').textContent = '▶ Start';
+    _startAfterAudio();
+  });
+}
+
+function _startAfterAudio() {
   requestWakeLock();
 
   if (paused) {
