@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMOM – Every Minute On the Minute</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --border: #222;
+    --accent: #e8ff3c;
+    --accent2: #ff4d4d;
+    --text: #f0f0f0;
+    --muted: #555;
+    --ready: #3cff8f;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px 16px 40px;
+    overflow-x: hidden;
+  }
+
+  /* Animated bg grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,60,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,60,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; width: 100%; max-width: 480px; }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 14vw, 80px);
+    letter-spacing: 6px;
+    color: var(--accent);
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(232,255,60,0.3);
+  }
+  .tagline {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Main clock */
+  .clock-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 16px;
+    margin-bottom: 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .clock-block::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left;
+    transition: transform 0.1s linear;
+  }
+  .clock-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .clock-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 22vw, 110px);
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: 4px;
+  }
+  .clock-time.warning { color: var(--accent); animation: pulse 0.5s infinite alternate; }
+  .clock-time.go { color: var(--ready); }
+
+  @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-lbl { font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+
+  /* Exercise card */
+  .exercise-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+  .exercise-card.active { border-color: var(--accent); }
+  .exercise-card.active::before {
+    content: '▶ NU';
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .exercise-card.next { border-color: #333; }
+  .exercise-card.next::before {
+    content: 'HÄRNÄST';
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+  .ex-minute {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .ex-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--text);
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .ex-reps {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .ex-tip {
+    font-size: 10px;
+    color: #666;
+    line-height: 1.5;
+    border-left: 2px solid #333;
+    padding-left: 8px;
+  }
+
+  /* Schedule mini */
+  .schedule {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .sched-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 4px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .sched-item.active { border-color: var(--accent); background: rgba(232,255,60,0.07); }
+  .sched-item.done { background: #0d0d0d; opacity: 0.4; }
+  .sched-icon { font-size: 18px; margin-bottom: 2px; }
+  .sched-num { font-size: 8px; letter-spacing: 1px; color: var(--muted); }
+
+  /* Lap tracker */
+  .lap-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .lap-dot {
+    width: 32px; height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.4s;
+  }
+  .lap-dot.done { background: var(--accent); }
+  .lap-dot.current { background: var(--accent); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Controls */
+  .controls { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: #d4e832; color: #000; border-color: #d4e832; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Finish state */
+  .finish-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+  }
+  .finish-overlay.show { display: flex; }
+  .finish-trophy { font-size: 64px; margin-bottom: 16px; }
+  .finish-title { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--accent); letter-spacing: 4px; }
+  .finish-sub { font-size: 11px; letter-spacing: 2px; color: var(--muted); margin: 8px 0 24px; }
+
+  .status-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .status-bar span { color: var(--text); }
+
+  .wakelock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+  .wakelock-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .wakelock-badge.active { border-color: #1a3a1a; color: var(--ready); }
+  .wakelock-badge.active .wakelock-dot { background: var(--ready); box-shadow: 0 0 6px var(--ready); }
+
+  /* Countdown overlay */
+  .countdown-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.93);
+    z-index: 90;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .countdown-overlay.show { display: flex; }
+  .countdown-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(120px, 40vw, 200px);
+    color: var(--accent);
+    line-height: 1;
+    animation: countPop 0.9s ease-out;
+  }
+  .countdown-num.go-text { color: var(--ready); font-size: clamp(80px, 25vw, 140px); }
+  @keyframes countPop {
+    0%   { transform: scale(1.4); opacity: 0.2; }
+    30%  { transform: scale(1.0); opacity: 1; }
+    80%  { transform: scale(1.0); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+  }
+  .countdown-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* Flash overlay for minute start */
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(232,255,60,0.12);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 50;
+    transition: opacity 0.05s;
+  }
+  .flash.pop { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">EMOM</div>
+    <div class="tagline">Every Minute On the Minute · 20 min · 5 varv</div>
+  </header>
+
+  <!-- Main clock -->
+  <div class="clock-block" id="clockBlock">
+    <div class="clock-label" id="clockLabel">Klar att köra?</div>
+    <div class="clock-time" id="clockDisplay">1:00</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" id="totalDisplay">20:00</div>
+      <div class="stat-lbl">Kvar totalt</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="roundDisplay">–</div>
+      <div class="stat-lbl">Varv</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="minDisplay">–</div>
+      <div class="stat-lbl">Minut</div>
+    </div>
+  </div>
+
+  <!-- Lap tracker -->
+  <div class="lap-dots">
+    <div class="lap-dot" id="lap0"></div>
+    <div class="lap-dot" id="lap1"></div>
+    <div class="lap-dot" id="lap2"></div>
+    <div class="lap-dot" id="lap3"></div>
+    <div class="lap-dot" id="lap4"></div>
+  </div>
+
+  <!-- Exercise overview mini -->
+  <div class="schedule" id="scheduleRow"></div>
+
+  <!-- Current exercise -->
+  <div class="exercise-card active" id="currentCard">
+    <div class="ex-minute">Minut –</div>
+    <div class="ex-name">Tryck START</div>
+    <div class="ex-reps"></div>
+    <div class="ex-tip">Välj en bekväm plats och var redo att börja på pistongen!</div>
+  </div>
+
+  <!-- Next exercise -->
+  <div class="exercise-card next" id="nextCard">
+    <div class="ex-minute">Minut –</div>
+    <div class="ex-name">–</div>
+    <div class="ex-reps"></div>
+    <div class="ex-tip"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn btn-primary" id="btnStart" onclick="startTimer()">▶ Start</button>
+    <button class="btn" id="btnPause" onclick="pauseTimer()" disabled>⏸ Paus</button>
+    <button class="btn" id="btnReset" onclick="resetTimer()">↺ Reset</button>
+  </div>
+
+  <div class="status-bar" id="statusBar">Tryck START för att börja träningen · <span>5 varv × 4 övningar</span></div>
+
+  <div style="height:8px"></div>
+  <div class="wakelock-badge" id="wakelockBadge">
+    <span class="wakelock-dot" id="wakelockDot"></span>
+    <span id="wakelockText">SKÄRM: OKÄND</span>
+  </div>
+</div>
+
+<!-- Countdown overlay -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-num" id="countdownNum">5</div>
+  <div class="countdown-label" id="countdownLabel">Gör dig redo...</div>
+</div>
+
+<!-- Finish screen -->
+<div class="finish-overlay" id="finishOverlay">
+  <div class="finish-trophy">🏆</div>
+  <div class="finish-title">Klart!</div>
+  <div class="finish-sub">20 minuter · 5 varv · 20 övningar avklarade</div>
+  <button class="btn btn-primary" onclick="resetTimer(); document.getElementById('finishOverlay').classList.remove('show');" style="max-width:200px">↺ Kör igen</button>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<script>
+const EXERCISES = [
+  {
+    name: "Utfallssteg",
+    sub: "Alternating Lunges",
+    reps: "16–20 st totalt",
+    tip: "För 191 cm: Ta långa kliv för att verkligen aktivera sätet.",
+    icon: "🦵"
+  },
+  {
+    name: "Armhävningar",
+    sub: "Push-ups",
+    reps: "12–15 st",
+    tip: "Gör dem långsamt nedåt (3 sekunder) för att bygga mer muskelmassa.",
+    icon: "💪"
+  },
+  {
+    name: "Air Squats",
+    sub: "Knäböj",
+    reps: "20 st",
+    tip: "Extra flås: Gör dem explosiva – nästan som små hopp i slutet!",
+    icon: "🏋️"
+  },
+  {
+    name: "Plankan",
+    sub: "Shoulder Taps",
+    reps: "20 st totalt",
+    tip: "Armhävningsposition – nudda motsatt axel utan att vicka på höften. Suveränt för ryggen.",
+    icon: "🧱"
+  }
+];
+
+const TOTAL_MINUTES = 20;
+const ROUNDS = 5;
+const EXERCISES_PER_ROUND = 4;
+
+let timer = null;
+let secondsLeft = 60;
+let totalSecondsLeft = TOTAL_MINUTES * 60;
+let currentMinute = 0; // 0-indexed, 0–19
+let running = false;
+let paused = false;
+
+// Audio — Web Audio API, Safari-safe
+// AudioContext is created synchronously inside the first user gesture (startTimer)
+// and stored globally. All subsequent sounds reuse it.
+let _ac = null;
+
+function _getAC() {
+  if (!_ac) {
+    _ac = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _ac;
+}
+
+// Call this synchronously inside a click handler to unlock audio on Safari
+function initAudio() {
+  const ac = _getAC();
+  if (ac.state === 'suspended') {
+    return ac.resume();
+  }
+  return Promise.resolve();
+}
+
+function _playTone(freqs) {
+  // sine wave + soft attack/release = warm, gentle tone
+  const ac = _getAC();
+  if (!ac) return;
+  freqs.forEach(({f, start, end, vol}) => {
+    const osc  = ac.createOscillator();
+    const gain = ac.createGain();
+    // Add a subtle harmonics layer for warmth without harshness
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    const t0 = ac.currentTime + start;
+    const t1 = ac.currentTime + end;
+    const attack = Math.min(0.04, (t1 - t0) * 0.15);
+    const release = Math.min(0.12, (t1 - t0) * 0.4);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + attack);   // soft attack
+    gain.gain.setValueAtTime(vol, t1 - release);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t1);    // smooth release
+    osc.start(t0);
+    osc.stop(t1 + 0.01);
+  });
+}
+
+function playSound(name) {
+  const ac = _getAC();
+  if (!ac) return;
+  if (name === 'tick') {
+    // Soft low dong
+    _playTone([{f:370, start:0, end:0.18, vol:0.35}]);
+  } else if (name === 'signal') {
+    // Three warm ascending tones
+    _playTone([
+      {f:523, start:0,   end:0.22, vol:0.5},
+      {f:659, start:0.25, end:0.47, vol:0.5},
+      {f:784, start:0.5,  end:0.78, vol:0.55},
+    ]);
+  } else if (name === 'go') {
+    // Warm uplifting chord
+    _playTone([
+      {f:523, start:0, end:0.5, vol:0.45},
+      {f:659, start:0, end:0.5, vol:0.35},
+      {f:784, start:0, end:0.5, vol:0.3},
+    ]);
+  } else if (name === 'finish') {
+    // Gentle triumphant arpeggio
+    _playTone([
+      {f:523,  start:0,    end:0.28, vol:0.45},
+      {f:659,  start:0.3,  end:0.58, vol:0.45},
+      {f:784,  start:0.6,  end:0.88, vol:0.45},
+      {f:1046, start:0.9,  end:1.4,  vol:0.5},
+    ]);
+  }
+};
+
+
+// Wake Lock
+let wakeLock = null;
+
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) {
+    setWakeLockBadge(false, 'EJ STÖDD AV WEBBLÄSAREN');
+    return;
+  }
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    setWakeLockBadge(true, 'SKÄRM: ALLTID PÅ');
+    wakeLock.addEventListener('release', () => {
+      setWakeLockBadge(false, 'SKÄRM: SLÄCKT');
+    });
+  } catch(e) {
+    setWakeLockBadge(false, 'SKÄRM: EJ AKTIV');
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  setWakeLockBadge(false, 'SKÄRM: EJ AKTIV');
+}
+
+function setWakeLockBadge(active, text) {
+  const badge = document.getElementById('wakelockBadge');
+  document.getElementById('wakelockText').textContent = text;
+  badge.className = 'wakelock-badge' + (active ? ' active' : '');
+}
+
+// Re-acquire wake lock if page becomes visible again (e.g. after tab switch)
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && running) {
+    await requestWakeLock();
+  }
+});
+
+function minuteSignal() {
+  playSound('signal');
+  flashScreen();
+}
+
+function warningBeep() {
+  playSound('tick');
+}
+
+function flashScreen() {
+  const f = document.getElementById('flash');
+  f.classList.add('pop');
+  setTimeout(() => f.classList.remove('pop'), 200);
+}
+
+// Build schedule icons
+function buildSchedule() {
+  const row = document.getElementById('scheduleRow');
+  row.innerHTML = '';
+  EXERCISES.forEach((ex, i) => {
+    const d = document.createElement('div');
+    d.className = 'sched-item';
+    d.id = 'sched' + i;
+    d.innerHTML = `<div class="sched-icon">${ex.icon}</div><div class="sched-num">Min ${i+1}</div>`;
+    row.appendChild(d);
+  });
+}
+
+function updateScheduleHighlight(exIdx) {
+  EXERCISES.forEach((_, i) => {
+    const el = document.getElementById('sched' + i);
+    el.className = 'sched-item' + (i === exIdx ? ' active' : '');
+  });
+}
+
+function getExerciseIndex(minute) {
+  return minute % EXERCISES_PER_ROUND;
+}
+
+function getRound(minute) {
+  return Math.floor(minute / EXERCISES_PER_ROUND) + 1;
+}
+
+function updateCards(minute) {
+  const exIdx = getExerciseIndex(minute);
+  const nextMinute = minute + 1;
+  const nextExIdx = getExerciseIndex(nextMinute);
+  const round = getRound(minute);
+
+  const cur = EXERCISES[exIdx];
+  const nxt = EXERCISES[nextExIdx];
+
+  const cc = document.getElementById('currentCard');
+  cc.querySelector('.ex-minute').textContent = `Minut ${minute + 1} · Varv ${round}`;
+  cc.querySelector('.ex-name').textContent = cur.name;
+  cc.querySelector('.ex-reps').textContent = cur.reps;
+  cc.querySelector('.ex-tip').textContent = cur.tip;
+
+  const nc = document.getElementById('nextCard');
+  if (nextMinute < TOTAL_MINUTES) {
+    nc.style.display = '';
+    nc.querySelector('.ex-minute').textContent = `Härnäst · Minut ${nextMinute + 1}`;
+    nc.querySelector('.ex-name').textContent = nxt.name;
+    nc.querySelector('.ex-reps').textContent = nxt.reps;
+    nc.querySelector('.ex-tip').textContent = nxt.tip;
+  } else {
+    nc.style.display = 'none';
+  }
+
+  updateScheduleHighlight(exIdx);
+  updateLaps(round - 1);
+}
+
+function updateLaps(completedRounds) {
+  for (let i = 0; i < 5; i++) {
+    const d = document.getElementById('lap' + i);
+    d.className = 'lap-dot';
+    if (i < completedRounds) d.classList.add('done');
+    else if (i === completedRounds) d.classList.add('current');
+  }
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function updateClock() {
+  const display = document.getElementById('clockDisplay');
+  const block = document.getElementById('clockBlock');
+  const label = document.getElementById('clockLabel');
+  const totalEl = document.getElementById('totalDisplay');
+  const roundEl = document.getElementById('roundDisplay');
+  const minEl = document.getElementById('minDisplay');
+
+  display.textContent = formatTime(secondsLeft);
+  totalEl.textContent = formatTime(totalSecondsLeft);
+  roundEl.textContent = getRound(currentMinute) + '/5';
+  minEl.textContent = (currentMinute + 1) + '/20';
+
+  // Progress bar on clock block
+  const progress = (60 - secondsLeft) / 60;
+  block.style.setProperty('--progress', progress);
+
+  // Color states
+  display.className = 'clock-time';
+  if (secondsLeft <= 5 && secondsLeft > 0) {
+    display.classList.add('warning');
+    label.textContent = 'Vila snart slut!';
+  } else if (secondsLeft === 60 || secondsLeft === 0) {
+    display.classList.add('go');
+    label.textContent = 'KÖR!';
+  } else {
+    label.textContent = 'Vila / förbered';
+  }
+}
+
+function tick() {
+  if (!running) return;
+
+  if (secondsLeft <= 5 && secondsLeft > 0) {
+    warningBeep();
+  }
+
+  secondsLeft--;
+  totalSecondsLeft--;
+  updateClock();
+
+  if (secondsLeft < 0) {
+    // Next minute
+    currentMinute++;
+    if (currentMinute >= TOTAL_MINUTES) {
+      finishWorkout();
+      return;
+    }
+    secondsLeft = 59;
+    minuteSignal();
+    updateCards(currentMinute);
+    updateClock();
+  }
+}
+
+let countdownInterval = null;
+
+function startTimer() {
+  if (running) return;
+
+  // Safari: AudioContext MUST be created/resumed synchronously in the click handler
+  initAudio();
+  requestWakeLock();
+
+  if (paused) {
+    running = true;
+    paused = false;
+    timer = setInterval(tick, 1000);
+    document.getElementById('btnStart').disabled = true;
+    document.getElementById('btnPause').disabled = false;
+    document.getElementById('statusBar').innerHTML = 'Träningen pågår · <span>Håll takten!</span>';
+    return;
+  }
+
+  // Fresh start — 5-second countdown
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('statusBar').innerHTML = 'Gör dig redo · <span>Startar snart!</span>';
+
+  let count = 5;
+  const overlay = document.getElementById('countdownOverlay');
+  const numEl   = document.getElementById('countdownNum');
+  const lblEl   = document.getElementById('countdownLabel');
+
+  overlay.classList.add('show');
+  numEl.textContent = count;
+  numEl.className = 'countdown-num';
+  lblEl.textContent = 'Gör dig redo...';
+  playSound('tick');
+
+  countdownInterval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      numEl.textContent = count;
+      void numEl.offsetWidth;
+      numEl.className = 'countdown-num';
+      playSound('tick');
+    } else {
+      clearInterval(countdownInterval);
+      numEl.textContent = 'KÖR!';
+      numEl.className = 'countdown-num go-text';
+      lblEl.textContent = '';
+      playSound('go');
+      setTimeout(() => {
+        overlay.classList.remove('show');
+        running = true;
+        paused = false;
+        minuteSignal();
+        updateCards(0);
+        secondsLeft = 59;
+        totalSecondsLeft = TOTAL_MINUTES * 60 - 1;
+        updateClock();
+        timer = setInterval(tick, 1000);
+        document.getElementById('btnStart').disabled = true;
+        document.getElementById('btnPause').disabled = false;
+        document.getElementById('statusBar').innerHTML = 'Träningen pågår · <span>Håll takten!</span>';
+      }, 700);
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  if (!running) return;
+  running = false;
+  paused = true;
+  clearInterval(timer);
+  releaseWakeLock();
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStart').textContent = '▶ Fortsätt';
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('statusBar').innerHTML = 'Pausad · <span>Tryck Fortsätt</span>';
+}
+
+function resetTimer() {
+  running = false;
+  paused = false;
+  clearInterval(timer);
+  clearInterval(countdownInterval);
+  document.getElementById('countdownOverlay').classList.remove('show');
+  releaseWakeLock();
+  currentMinute = 0;
+  secondsLeft = 60;
+  totalSecondsLeft = TOTAL_MINUTES * 60;
+
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStart').textContent = '▶ Start';
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('clockDisplay').textContent = '1:00';
+  document.getElementById('clockDisplay').className = 'clock-time';
+  document.getElementById('clockLabel').textContent = 'Klar att köra?';
+  document.getElementById('totalDisplay').textContent = '20:00';
+  document.getElementById('roundDisplay').textContent = '–';
+  document.getElementById('minDisplay').textContent = '–';
+  document.getElementById('clockBlock').style.setProperty('--progress', 0);
+  document.getElementById('statusBar').innerHTML = 'Tryck START för att börja träningen · <span>5 varv × 4 övningar</span>';
+
+  // Reset cards
+  const cc = document.getElementById('currentCard');
+  cc.querySelector('.ex-minute').textContent = 'Minut –';
+  cc.querySelector('.ex-name').textContent = 'Tryck START';
+  cc.querySelector('.ex-reps').textContent = '';
+  cc.querySelector('.ex-tip').textContent = 'Välj en bekväm plats och var redo att börja på pistongen!';
+  document.getElementById('nextCard').style.display = '';
+  const nc = document.getElementById('nextCard');
+  nc.querySelector('.ex-minute').textContent = 'Minut –';
+  nc.querySelector('.ex-name').textContent = '–';
+  nc.querySelector('.ex-reps').textContent = '';
+  nc.querySelector('.ex-tip').textContent = '';
+
+  // Reset laps & schedule
+  for (let i = 0; i < 5; i++) document.getElementById('lap' + i).className = 'lap-dot';
+  EXERCISES.forEach((_, i) => document.getElementById('sched' + i).className = 'sched-item');
+}
+
+function finishWorkout() {
+  running = false;
+  clearInterval(timer);
+  playSound('finish');
+  // All laps done
+  for (let i = 0; i < 5; i++) {
+    const d = document.getElementById('lap' + i);
+    d.className = 'lap-dot done';
+  }
+  setTimeout(() => {
+    document.getElementById('finishOverlay').classList.add('show');
+  }, 1200);
+}
+
+// Init
+buildSchedule();
+if ('wakeLock' in navigator) {
+  setWakeLockBadge(false, 'SKÄRM: AKTIVERAS VID START');
+} else {
+  setWakeLockBadge(false, 'SKÄRM: EJ STÖDD');
+}
+</script>
+</body>
+</html>
