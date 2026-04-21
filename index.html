@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EMOM – Every Minute On the Minute</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -490,55 +489,106 @@ let currentMinute = 0; // 0-indexed, 0–19
 let running = false;
 let paused = false;
 
-// Audio — Tone.js Salamander Grand Piano sampler
-// Loaded from CDN, works on HTTPS (Vercel)
-let _sampler = null;
-let _toneReady = false;
+// Audio — Web Audio API with piano-like tones
+// Uses sine waves + soft attack/release + convolver reverb for warmth
+let _ac = null;
+let _reverb = null;
+let _audioReady = false;
 
 function initAudio() {
-  // Must be called synchronously in a user gesture to start Tone.js
-  if (_toneReady) return Promise.resolve();
-  return Tone.start().then(() => {
-    _sampler = new Tone.Sampler({
-      urls: {
-        C4: "C4.mp3", E4: "E4.mp3", G4: "G4.mp3",
-        C5: "C5.mp3", E5: "E5.mp3", G5: "G5.mp3",
-        C6: "C6.mp3",
-      },
-      release: 2.5,
-      baseUrl: "https://tonejs.github.io/audio/salamander/",
-    }).toDestination();
-    _toneReady = true;
-  });
+  if (_audioReady) return Promise.resolve();
+  _ac = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Create a simple reverb using a decaying noise buffer
+  const reverbLen = _ac.sampleRate * 1.8;
+  const reverbBuf = _ac.createBuffer(2, reverbLen, _ac.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = reverbBuf.getChannelData(ch);
+    for (let i = 0; i < reverbLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2.5);
+    }
+  }
+  _reverb = _ac.createConvolver();
+  _reverb.buffer = reverbBuf;
+  _reverb.connect(_ac.destination);
+
+  _audioReady = true;
+
+  if (_ac.state === 'suspended') return _ac.resume();
+  return Promise.resolve();
 }
 
-function _note(note, duration, velocity, delay) {
-  if (!_sampler || !_toneReady) return;
-  const time = Tone.now() + (delay || 0);
-  _sampler.triggerAttackRelease(note, duration, time, velocity);
+// Play a piano-like tone: sine wave + soft attack + exponential release + reverb
+function _piano(freq, duration, vol, delay) {
+  if (!_ac || !_audioReady) return;
+  const t0 = _ac.currentTime + (delay || 0);
+  const attack = 0.008;
+  const release = duration * 1.6;
+
+  // Main sine tone
+  const osc = _ac.createOscillator();
+  const gain = _ac.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+
+  // Subtle second harmonic for piano body
+  const osc2 = _ac.createOscillator();
+  const gain2 = _ac.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.value = freq * 2;
+  gain2.gain.setValueAtTime(vol * 0.12, t0);
+  gain2.gain.exponentialRampToValueAtTime(0.0001, t0 + release * 0.6);
+  osc2.connect(gain2);
+
+  // Dry mix to destination
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(vol, t0 + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + release);
+  osc.connect(gain);
+  gain.connect(_ac.destination);
+  gain2.connect(_ac.destination);
+
+  // Wet mix through reverb (quieter)
+  const gainRev = _ac.createGain();
+  gainRev.gain.setValueAtTime(0, t0);
+  gainRev.gain.linearRampToValueAtTime(vol * 0.3, t0 + attack);
+  gainRev.gain.exponentialRampToValueAtTime(0.0001, t0 + release);
+  const osc3 = _ac.createOscillator();
+  osc3.type = 'sine';
+  osc3.frequency.value = freq;
+  osc3.connect(gainRev);
+  gainRev.connect(_reverb);
+
+  osc.start(t0);  osc.stop(t0 + release + 0.1);
+  osc2.start(t0); osc2.stop(t0 + release * 0.6 + 0.1);
+  osc3.start(t0); osc3.stop(t0 + release + 0.1);
 }
+
+// Note frequencies (equal temperament)
+const NOTES = {
+  G3:196.00, A3:220.00, B3:246.94,
+  C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00,
+  A4:440.00, B4:493.88,
+  C5:523.25, E5:659.26, G5:783.99, C6:1046.50
+};
 
 function playSound(name) {
-  if (!_sampler || !_toneReady) return;
+  if (!_audioReady) return;
   if (name === 'tick') {
-    // Single soft low note
-    _note('G3', '8n', 0.25, 0);
+    _piano(NOTES.G3, 0.35, 0.55, 0);
   } else if (name === 'signal') {
-    // Soft ascending three-note phrase
-    _note('C4', '4n', 0.3,  0);
-    _note('E4', '4n', 0.28, 0.22);
-    _note('G4', '2n', 0.32, 0.44);
+    _piano(NOTES.C4, 0.55, 0.65, 0);
+    _piano(NOTES.E4, 0.55, 0.60, 0.25);
+    _piano(NOTES.G4, 0.85, 0.70, 0.50);
   } else if (name === 'go') {
-    // Warm encouraging chord
-    _note('C4', '2n', 0.28, 0);
-    _note('E4', '2n', 0.22, 0);
-    _note('G4', '2n', 0.2,  0);
+    _piano(NOTES.C4, 1.0, 0.65, 0);
+    _piano(NOTES.E4, 1.0, 0.55, 0.04);
+    _piano(NOTES.G4, 1.0, 0.50, 0.08);
   } else if (name === 'finish') {
-    // Gentle triumphant arpeggio
-    _note('C4', '4n', 0.3,  0);
-    _note('E4', '4n', 0.28, 0.2);
-    _note('G4', '4n', 0.28, 0.4);
-    _note('C5', '2n', 0.35, 0.6);
+    _piano(NOTES.C4, 0.6, 0.60, 0);
+    _piano(NOTES.E4, 0.6, 0.60, 0.22);
+    _piano(NOTES.G4, 0.6, 0.60, 0.44);
+    _piano(NOTES.C5, 1.4, 0.75, 0.66);
   }
 }
 
@@ -727,11 +777,9 @@ let countdownInterval = null;
 function startTimer() {
   if (running) return;
 
-  // Start Tone.js + load piano samples, then begin countdown
+  // Init audio on user gesture (required by browsers), then start countdown
   document.getElementById('btnStart').disabled = true;
-  document.getElementById('btnStart').textContent = '⏳ Laddar...';
   initAudio().then(() => {
-    document.getElementById('btnStart').textContent = '▶ Start';
     _startAfterAudio();
   });
 }
