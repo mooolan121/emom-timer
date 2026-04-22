@@ -13,7 +13,6 @@
     --surface: #111;
     --border: #222;
     --accent: #e8ff3c;
-    --accent2: #ff4d4d;
     --text: #f0f0f0;
     --muted: #555;
     --ready: #3cff8f;
@@ -31,8 +30,6 @@
     padding: 20px 16px 40px;
     overflow-x: hidden;
   }
-
-  /* Animated bg grid */
   body::before {
     content: '';
     position: fixed;
@@ -45,14 +42,75 @@
     z-index: 0;
   }
 
+  /* ─── PROFILE SCREEN ─── */
+  .profile-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .profile-screen.hidden { display: none; }
+  .profile-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px;
+    color: var(--accent);
+    letter-spacing: 6px;
+    text-shadow: 0 0 40px rgba(232,255,60,0.3);
+    margin-bottom: 8px;
+  }
+  .profile-sub {
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+  .profile-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .profile-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+  }
+  .profile-btn {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .profile-btn:hover, .profile-btn:active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ─── MAIN APP ─── */
   .wrap { position: relative; z-index: 1; width: 100%; max-width: 480px; }
 
-  /* Header */
   header {
     text-align: center;
     margin-bottom: 24px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--border);
+    position: relative;
   }
   .logo {
     font-family: 'Bebas Neue', sans-serif;
@@ -69,8 +127,27 @@
     text-transform: uppercase;
     margin-top: 4px;
   }
+  /* Profile chip in header */
+  .profile-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .profile-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .profile-chip .chip-name { color: var(--accent); font-size: 10px; }
 
-  /* Main clock */
+  /* ─── CLOCK ─── */
   .clock-block {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -91,48 +168,19 @@
     transform-origin: left;
     transition: transform 0.1s linear;
   }
-  .clock-label {
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-  .clock-time {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(72px, 22vw, 110px);
-    line-height: 1;
-    color: var(--text);
-    letter-spacing: 4px;
-  }
+  .clock-label { font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .clock-time { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 22vw, 110px); line-height: 1; color: var(--text); letter-spacing: 4px; }
   .clock-time.warning { color: var(--accent); animation: pulse 0.5s infinite alternate; }
   .clock-time.go { color: var(--ready); }
-
   @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
 
-  /* Stats row */
-  .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .stat-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 12px 8px;
-    text-align: center;
-  }
-  .stat-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    color: var(--accent);
-    line-height: 1;
-  }
+  /* ─── STATS ─── */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 12px 8px; text-align: center; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; }
   .stat-lbl { font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
 
-  /* Exercise card */
+  /* ─── EXERCISE CARDS ─── */
   .exercise-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -143,256 +191,180 @@
     transition: border-color 0.3s;
   }
   .exercise-card.active { border-color: var(--accent); }
-  .exercise-card.active::before {
-    content: '▶ NU';
-    position: absolute;
-    top: 12px; right: 12px;
-    font-size: 8px;
-    letter-spacing: 2px;
-    color: var(--accent);
-    font-weight: 500;
-  }
+  .exercise-card.active::before { content: '▶ NU'; position: absolute; top: 12px; right: 12px; font-size: 8px; letter-spacing: 2px; color: var(--accent); }
   .exercise-card.next { border-color: #333; }
-  .exercise-card.next::before {
-    content: 'HÄRNÄST';
-    position: absolute;
-    top: 12px; right: 12px;
-    font-size: 8px;
-    letter-spacing: 2px;
-    color: var(--muted);
-  }
-  .ex-minute {
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-  .ex-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    color: var(--text);
-    letter-spacing: 2px;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .ex-reps {
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-  }
-  .ex-tip {
-    font-size: 10px;
-    color: #666;
-    line-height: 1.5;
-    border-left: 2px solid #333;
-    padding-left: 8px;
-  }
+  .exercise-card.next::before { content: 'HÄRNÄST'; position: absolute; top: 12px; right: 12px; font-size: 8px; letter-spacing: 2px; color: var(--muted); }
+  .ex-minute { font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .ex-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--text); letter-spacing: 2px; line-height: 1; margin-bottom: 4px; }
+  .ex-reps { font-size: 11px; color: var(--accent); letter-spacing: 1px; margin-bottom: 6px; }
+  .ex-tip { font-size: 10px; color: #666; line-height: 1.5; border-left: 2px solid #333; padding-left: 8px; }
 
-  /* Schedule mini */
-  .schedule {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .sched-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 8px 4px;
-    text-align: center;
-    transition: all 0.2s;
-    cursor: default;
-  }
+  /* ─── SCHEDULE ─── */
+  .schedule { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .sched-item { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 8px 4px; text-align: center; transition: all 0.2s; }
   .sched-item.active { border-color: var(--accent); background: rgba(232,255,60,0.07); }
-  .sched-item.done { background: #0d0d0d; opacity: 0.4; }
   .sched-icon { font-size: 18px; margin-bottom: 2px; }
   .sched-num { font-size: 8px; letter-spacing: 1px; color: var(--muted); }
 
-  /* Lap tracker */
-  .lap-dots {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-bottom: 16px;
-  }
-  .lap-dot {
-    width: 32px; height: 4px;
-    border-radius: 2px;
-    background: var(--border);
-    transition: background 0.4s;
-  }
+  /* ─── LAPS ─── */
+  .lap-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+  .lap-dot { width: 32px; height: 4px; border-radius: 2px; background: var(--border); transition: background 0.4s; }
   .lap-dot.done { background: var(--accent); }
   .lap-dot.current { background: var(--accent); animation: blink 1s infinite; }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  /* Controls */
+  /* ─── CONTROLS ─── */
   .controls { display: flex; gap: 8px; margin-bottom: 12px; }
   .btn {
-    flex: 1;
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    background: var(--surface);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.15s;
+    flex: 1; padding: 14px; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface); color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
   }
   .btn:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-primary {
-    background: var(--accent);
-    color: #000;
-    border-color: var(--accent);
-    font-weight: 500;
-  }
+  .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 500; }
   .btn-primary:hover { background: #d4e832; color: #000; border-color: #d4e832; }
   .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* Finish state */
-  .finish-overlay {
+  /* ─── EDIT BUTTON ─── */
+  .edit-row { display: flex; justify-content: center; margin-bottom: 12px; }
+  .btn-edit {
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: 4px;
+    background: transparent; color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ─── STATUS / WAKELOCK ─── */
+  .status-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; font-size: 10px; letter-spacing: 1px; color: var(--muted); text-align: center; }
+  .status-bar span { color: var(--text); }
+  .wakelock-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; letter-spacing: 2px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-top: 8px; width: 100%; justify-content: center; }
+  .wakelock-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .wakelock-badge.active { border-color: #1a3a1a; color: var(--ready); }
+  .wakelock-badge.active .wakelock-dot { background: var(--ready); box-shadow: 0 0 6px var(--ready); }
+
+  /* ─── EDITOR OVERLAY ─── */
+  .editor-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.92);
-    z-index: 100;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 32px;
+    background: var(--bg);
+    z-index: 150;
+    overflow-y: auto;
+    padding: 24px 16px 48px;
   }
+  .editor-overlay.show { display: block; }
+  .editor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .editor-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); letter-spacing: 3px; }
+  .editor-profile { font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+
+  .editor-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .editor-card-header {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .editor-field { margin-bottom: 10px; }
+  .editor-field label { display: block; font-size: 8px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .editor-field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .editor-field input:focus { border-color: var(--accent); }
+
+  .editor-save {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .editor-save:hover { background: #d4e832; }
+
+  /* ─── COUNTDOWN ─── */
+  .countdown-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 90; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .countdown-overlay.show { display: flex; }
+  .countdown-num { font-family: 'Bebas Neue', sans-serif; font-size: clamp(120px, 40vw, 200px); color: var(--accent); line-height: 1; animation: countPop 0.9s ease-out; }
+  .countdown-num.go-text { color: var(--ready); font-size: clamp(80px, 25vw, 140px); }
+  @keyframes countPop { 0% { transform: scale(1.4); opacity: 0.2; } 30% { transform: scale(1.0); opacity: 1; } 80% { transform: scale(1.0); opacity: 1; } 100% { transform: scale(0.8); opacity: 0; } }
+  .countdown-label { font-size: 11px; letter-spacing: 4px; color: var(--muted); text-transform: uppercase; margin-top: 8px; }
+
+  /* ─── FINISH ─── */
+  .finish-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; }
   .finish-overlay.show { display: flex; }
   .finish-trophy { font-size: 64px; margin-bottom: 16px; }
   .finish-title { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--accent); letter-spacing: 4px; }
   .finish-sub { font-size: 11px; letter-spacing: 2px; color: var(--muted); margin: 8px 0 24px; }
 
-  .status-bar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 14px;
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: var(--muted);
-    text-align: center;
-    margin-bottom: 0;
-  }
-  .status-bar span { color: var(--text); }
-
-  .wakelock-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 6px 10px;
-    margin-bottom: 12px;
-    width: 100%;
-    justify-content: center;
-  }
-  .wakelock-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-  }
-  .wakelock-badge.active { border-color: #1a3a1a; color: var(--ready); }
-  .wakelock-badge.active .wakelock-dot { background: var(--ready); box-shadow: 0 0 6px var(--ready); }
-
-  /* Countdown overlay */
-  .countdown-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.93);
-    z-index: 90;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-  .countdown-overlay.show { display: flex; }
-  .countdown-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(120px, 40vw, 200px);
-    color: var(--accent);
-    line-height: 1;
-    animation: countPop 0.9s ease-out;
-  }
-  .countdown-num.go-text { color: var(--ready); font-size: clamp(80px, 25vw, 140px); }
-  @keyframes countPop {
-    0%   { transform: scale(1.4); opacity: 0.2; }
-    30%  { transform: scale(1.0); opacity: 1; }
-    80%  { transform: scale(1.0); opacity: 1; }
-    100% { transform: scale(0.8); opacity: 0; }
-  }
-  .countdown-label {
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-top: 8px;
-  }
-
-  /* Flash overlay for minute start */
-  .flash {
-    position: fixed;
-    inset: 0;
-    background: rgba(232,255,60,0.12);
-    pointer-events: none;
-    opacity: 0;
-    z-index: 50;
-    transition: opacity 0.05s;
-  }
+  /* ─── FLASH ─── */
+  .flash { position: fixed; inset: 0; background: rgba(232,255,60,0.12); pointer-events: none; opacity: 0; z-index: 50; transition: opacity 0.05s; }
   .flash.pop { opacity: 1; }
 </style>
 </head>
 <body>
-<!-- iOS fix: a looping silent audio element forces Web Audio onto the media channel,
-     so sound plays through the speaker regardless of mute/ringer switch -->
+
+<!-- iOS audio fix -->
 <audio id="iosSilence" loop playsinline style="display:none">
   <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM1OC41NAAAAAAAAAAAAAAAACQDkAAAAAAAAbBRajkAAAAAAAAAAAAAAAAAAAAA/+MYxAANCAZhUUAAAmlTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mp3">
 </audio>
 
-<div class="wrap">
+<!-- ── PROFILE SCREEN ── -->
+<div class="profile-screen" id="profileScreen">
+  <div class="profile-logo">EMOM</div>
+  <div class="profile-sub">Every Minute On the Minute</div>
+  <div class="profile-label">Vem tränar?</div>
+  <div class="profile-btns">
+    <button class="profile-btn" onclick="selectProfile('Andreas')">Andreas</button>
+    <button class="profile-btn" onclick="selectProfile('Johanna')">Johanna</button>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div class="wrap" id="appWrap" style="display:none">
   <header>
     <div class="logo">EMOM</div>
-    <div class="tagline">Every Minute On the Minute · 20 min · 5 varv</div>
+    <div class="tagline" id="appTagline">Every Minute On the Minute · 20 min · 5 varv</div>
+    <div class="profile-chip" onclick="switchProfile()">
+      <span>Profil:</span>
+      <span class="chip-name" id="chipName">–</span>
+      <span>↗</span>
+    </div>
   </header>
 
-  <!-- Main clock -->
   <div class="clock-block" id="clockBlock">
     <div class="clock-label" id="clockLabel">Klar att köra?</div>
     <div class="clock-time" id="clockDisplay">1:00</div>
   </div>
 
-  <!-- Stats -->
   <div class="stats-row">
-    <div class="stat-box">
-      <div class="stat-val" id="totalDisplay">20:00</div>
-      <div class="stat-lbl">Kvar totalt</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-val" id="roundDisplay">–</div>
-      <div class="stat-lbl">Varv</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-val" id="minDisplay">–</div>
-      <div class="stat-lbl">Minut</div>
-    </div>
+    <div class="stat-box"><div class="stat-val" id="totalDisplay">20:00</div><div class="stat-lbl">Kvar totalt</div></div>
+    <div class="stat-box"><div class="stat-val" id="roundDisplay">–</div><div class="stat-lbl">Varv</div></div>
+    <div class="stat-box"><div class="stat-val" id="minDisplay">–</div><div class="stat-lbl">Minut</div></div>
   </div>
 
-  <!-- Lap tracker -->
   <div class="lap-dots">
     <div class="lap-dot" id="lap0"></div>
     <div class="lap-dot" id="lap1"></div>
@@ -401,18 +373,15 @@
     <div class="lap-dot" id="lap4"></div>
   </div>
 
-  <!-- Exercise overview mini -->
   <div class="schedule" id="scheduleRow"></div>
 
-  <!-- Current exercise -->
   <div class="exercise-card active" id="currentCard">
     <div class="ex-minute">Minut –</div>
     <div class="ex-name">Tryck START</div>
     <div class="ex-reps"></div>
-    <div class="ex-tip">Välj en bekväm plats och var redo att börja på pistongen!</div>
+    <div class="ex-tip">Välj en bekväm plats och var redo!</div>
   </div>
 
-  <!-- Next exercise -->
   <div class="exercise-card next" id="nextCard">
     <div class="ex-minute">Minut –</div>
     <div class="ex-name">–</div>
@@ -420,106 +389,167 @@
     <div class="ex-tip"></div>
   </div>
 
-  <!-- Controls -->
   <div class="controls">
     <button class="btn btn-primary" id="btnStart" onclick="startTimer()">▶ Start</button>
     <button class="btn" id="btnPause" onclick="pauseTimer()" disabled>⏸ Paus</button>
     <button class="btn" id="btnReset" onclick="resetTimer()">↺ Reset</button>
   </div>
 
-  <div class="status-bar" id="statusBar">Tryck START för att börja träningen · <span>5 varv × 4 övningar</span></div>
+  <div class="edit-row">
+    <button class="btn-edit" onclick="openEditor()">✏ Redigera övningar</button>
+  </div>
 
-  <div style="height:8px"></div>
+  <div class="status-bar" id="statusBar">Tryck START för att börja · <span>5 varv × 4 övningar</span></div>
   <div class="wakelock-badge" id="wakelockBadge">
-    <span class="wakelock-dot" id="wakelockDot"></span>
-    <span id="wakelockText">SKÄRM: OKÄND</span>
+    <span class="wakelock-dot"></span>
+    <span id="wakelockText">SKÄRM: AKTIVERAS VID START</span>
   </div>
 </div>
 
-<!-- Countdown overlay -->
+<!-- ── EDITOR OVERLAY ── -->
+<div class="editor-overlay" id="editorOverlay">
+  <div class="editor-header">
+    <div>
+      <div class="editor-title">Övningar</div>
+      <div class="editor-profile" id="editorProfileLabel">–</div>
+    </div>
+    <button class="btn" style="flex:0;padding:10px 16px" onclick="closeEditor()">✕ Stäng</button>
+  </div>
+  <div id="editorCards"></div>
+  <button class="editor-save" onclick="saveExercises()">Spara övningar</button>
+</div>
+
+<!-- ── COUNTDOWN ── -->
 <div class="countdown-overlay" id="countdownOverlay">
   <div class="countdown-num" id="countdownNum">5</div>
   <div class="countdown-label" id="countdownLabel">Gör dig redo...</div>
 </div>
 
-<!-- Finish screen -->
+<!-- ── FINISH ── -->
 <div class="finish-overlay" id="finishOverlay">
   <div class="finish-trophy">🏆</div>
   <div class="finish-title">Klart!</div>
-  <div class="finish-sub">20 minuter · 5 varv · 20 övningar avklarade</div>
+  <div class="finish-sub">20 minuter · 5 varv avklarade!</div>
   <button class="btn btn-primary" onclick="resetTimer(); document.getElementById('finishOverlay').classList.remove('show');" style="max-width:200px">↺ Kör igen</button>
 </div>
 
 <div class="flash" id="flash"></div>
 
 <script>
-const EXERCISES = [
-  {
-    name: "Utfallssteg",
-    sub: "Alternating Lunges",
-    reps: "16–20 st totalt",
-    tip: "För 191 cm: Ta långa kliv för att verkligen aktivera sätet.",
-    icon: "🦵"
-  },
-  {
-    name: "Armhävningar",
-    sub: "Push-ups",
-    reps: "12–15 st",
-    tip: "Gör dem långsamt nedåt (3 sekunder) för att bygga mer muskelmassa.",
-    icon: "💪"
-  },
-  {
-    name: "Air Squats",
-    sub: "Knäböj",
-    reps: "20 st",
-    tip: "Extra flås: Gör dem explosiva – nästan som små hopp i slutet!",
-    icon: "🏋️"
-  },
-  {
-    name: "Plankan",
-    sub: "Shoulder Taps",
-    reps: "20 st totalt",
-    tip: "Armhävningsposition – nudda motsatt axel utan att vicka på höften. Suveränt för ryggen.",
-    icon: "🧱"
-  }
+// ─── DEFAULT EXERCISES (same for both profiles on first run) ───
+const DEFAULT_EXERCISES = [
+  { name: "Utfallssteg", reps: "16–20 st totalt", tip: "Ta långa kliv för att aktivera sätet.", icon: "🦵" },
+  { name: "Armhävningar", reps: "12–15 st", tip: "Långsamt nedåt (3 sek) för mer muskelmassa.", icon: "💪" },
+  { name: "Air Squats", reps: "20 st", tip: "Explosiva – nästan som små hopp i slutet!", icon: "🏋️" },
+  { name: "Plankan Shoulder Taps", reps: "20 st totalt", tip: "Nudda motsatt axel utan att vicka på höften.", icon: "🧱" },
 ];
 
+const PROFILES = ['Andreas', 'Johanna'];
+let currentProfile = null;
+let EXERCISES = [];
+
+// ─── PROFILE MANAGEMENT ───
+function getStorageKey(profile) { return 'emom_exercises_' + profile; }
+
+function loadExercises(profile) {
+  const saved = localStorage.getItem(getStorageKey(profile));
+  return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_EXERCISES));
+}
+
+function saveExercisesToStorage(profile, exercises) {
+  localStorage.setItem(getStorageKey(profile), JSON.stringify(exercises));
+}
+
+function selectProfile(name) {
+  currentProfile = name;
+  EXERCISES = loadExercises(name);
+  document.getElementById('profileScreen').classList.add('hidden');
+  document.getElementById('appWrap').style.display = '';
+  document.getElementById('chipName').textContent = name;
+  buildSchedule();
+  resetTimer();
+}
+
+function switchProfile() {
+  if (running) return;
+  resetTimer();
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('profileScreen').classList.remove('hidden');
+}
+
+// ─── EDITOR ───
+function openEditor() {
+  if (running) return;
+  document.getElementById('editorProfileLabel').textContent = currentProfile + 's övningar';
+  const container = document.getElementById('editorCards');
+  container.innerHTML = '';
+  EXERCISES.forEach((ex, i) => {
+    container.innerHTML += `
+      <div class="editor-card">
+        <div class="editor-card-header">Minut ${i+1} · Övning ${i+1}</div>
+        <div class="editor-field">
+          <label>Namn</label>
+          <input type="text" id="ex_name_${i}" value="${ex.name}" placeholder="Övningens namn">
+        </div>
+        <div class="editor-field">
+          <label>Reps / beskrivning</label>
+          <input type="text" id="ex_reps_${i}" value="${ex.reps}" placeholder="t.ex. 15 st">
+        </div>
+      </div>`;
+  });
+  document.getElementById('editorOverlay').classList.add('show');
+}
+
+function closeEditor() {
+  document.getElementById('editorOverlay').classList.remove('show');
+}
+
+function saveExercises() {
+  EXERCISES.forEach((ex, i) => {
+    const name = document.getElementById('ex_name_' + i).value.trim();
+    const reps = document.getElementById('ex_reps_' + i).value.trim();
+    if (name) ex.name = name;
+    if (reps) ex.reps = reps;
+  });
+  saveExercisesToStorage(currentProfile, EXERCISES);
+  buildSchedule();
+  closeEditor();
+  // Flash confirmation
+  document.getElementById('statusBar').innerHTML = '✓ Övningar sparade · <span>' + currentProfile + '</span>';
+  setTimeout(() => {
+    document.getElementById('statusBar').innerHTML = 'Tryck START för att börja · <span>5 varv × 4 övningar</span>';
+  }, 2000);
+}
+
+// ─── TIMER STATE ───
 const TOTAL_MINUTES = 20;
-const ROUNDS = 5;
 const EXERCISES_PER_ROUND = 4;
 
 let timer = null;
+let countdownInterval = null;
 let secondsLeft = 60;
 let totalSecondsLeft = TOTAL_MINUTES * 60;
-let currentMinute = 0; // 0-indexed, 0–19
+let currentMinute = 0;
 let running = false;
 let paused = false;
 
-// Audio — Web Audio API, iOS Safari compatible
-// Key insight: on iOS, AudioContext starts "suspended". The ONLY way to unlock it
-// is to call ctx.resume() AND schedule/play audio nodes in the SAME synchronous
-// user-gesture call stack. We do this by playing a silent buffer immediately.
+// ─── AUDIO ───
 let _ac = null;
 let _reverb = null;
 let _audioReady = false;
 
 function initAudio() {
   if (_audioReady) return;
-
   _ac = new (window.AudioContext || window.webkitAudioContext)();
 
-  // iOS unlock: play a completely silent buffer RIGHT NOW, synchronously.
-  // This is the magic trick — it marks the context as user-activated.
   const silentBuf = _ac.createBuffer(1, 1, _ac.sampleRate);
   const silentSrc = _ac.createBufferSource();
   silentSrc.buffer = silentBuf;
   silentSrc.connect(_ac.destination);
   silentSrc.start(0);
 
-  // Also call resume() for browsers that need it
   if (_ac.state === 'suspended') _ac.resume();
 
-  // Build reverb impulse response
   const reverbLen = Math.floor(_ac.sampleRate * 1.5);
   const reverbBuf = _ac.createBuffer(2, reverbLen, _ac.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
@@ -534,45 +564,36 @@ function initAudio() {
 
   _audioReady = true;
 
-  // iOS speaker fix: play silent looping audio to force Web Audio onto
-  // the media audio session — otherwise sound only comes through headphones
   const silence = document.getElementById('iosSilence');
   if (silence) silence.play().catch(() => {});
 }
 
-// Bell-like tone: triangle wave + sharp attack transient + harmonic + reverb
-// Triangle = clearer than sine (cuts through background noise) but gentler than square
-// The sharp transient at attack is what makes the brain "notice" the sound
 function _bell(freq, duration, vol, delay) {
   if (!_ac || !_audioReady) return;
   const t0 = _ac.currentTime + 0.02 + (delay || 0);
   const dest = _ac.destination;
 
-  // --- Main body: triangle wave, medium decay ---
   const osc = _ac.createOscillator();
   const g = _ac.createGain();
   osc.type = 'triangle';
   osc.frequency.value = freq;
-  // Sharp transient at attack (punchy click) then immediate decay
   g.gain.setValueAtTime(0, t0);
-  g.gain.linearRampToValueAtTime(vol, t0 + 0.004);   // very fast attack = punch
-  g.gain.exponentialRampToValueAtTime(vol * 0.4, t0 + 0.04);  // quick initial drop
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);  // tail off
+  g.gain.linearRampToValueAtTime(vol, t0 + 0.004);
+  g.gain.exponentialRampToValueAtTime(vol * 0.4, t0 + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
   osc.connect(g); g.connect(dest);
   osc.start(t0); osc.stop(t0 + duration + 0.05);
 
-  // --- Overtone: adds shimmer/presence, helps cut through noise ---
   const osc2 = _ac.createOscillator();
   const g2 = _ac.createGain();
   osc2.type = 'sine';
-  osc2.frequency.value = freq * 3; // third harmonic = bell character
+  osc2.frequency.value = freq * 3;
   g2.gain.setValueAtTime(0, t0);
   g2.gain.linearRampToValueAtTime(vol * 0.18, t0 + 0.004);
   g2.gain.exponentialRampToValueAtTime(0.0001, t0 + duration * 0.4);
   osc2.connect(g2); g2.connect(dest);
   osc2.start(t0); osc2.stop(t0 + duration * 0.4 + 0.05);
 
-  // --- Reverb tail (warm room feel, lower volume) ---
   if (_reverb) {
     const osc3 = _ac.createOscillator();
     const g3 = _ac.createGain();
@@ -586,10 +607,7 @@ function _bell(freq, duration, vol, delay) {
   }
 }
 
-const NOTES = {
-  G3:196.00, C4:261.63, E4:329.63, G4:392.00,
-  A4:440.00, C5:523.25, E5:659.26, G5:783.99
-};
+const NOTES = { G3:196.00, C4:261.63, E4:329.63, G4:392.00, C5:523.25 };
 
 function playSound(name) {
   if (!_audioReady) return;
@@ -612,23 +630,16 @@ function playSound(name) {
   }
 }
 
-// Wake Lock
+// ─── WAKE LOCK ───
 let wakeLock = null;
 
 async function requestWakeLock() {
-  if (!('wakeLock' in navigator)) {
-    setWakeLockBadge(false, 'EJ STÖDD AV WEBBLÄSAREN');
-    return;
-  }
+  if (!('wakeLock' in navigator)) { setWakeLockBadge(false, 'EJ STÖDD'); return; }
   try {
     wakeLock = await navigator.wakeLock.request('screen');
     setWakeLockBadge(true, 'SKÄRM: ALLTID PÅ');
-    wakeLock.addEventListener('release', () => {
-      setWakeLockBadge(false, 'SKÄRM: SLÄCKT');
-    });
-  } catch(e) {
-    setWakeLockBadge(false, 'SKÄRM: EJ AKTIV');
-  }
+    wakeLock.addEventListener('release', () => setWakeLockBadge(false, 'SKÄRM: SLÄCKT'));
+  } catch(e) { setWakeLockBadge(false, 'SKÄRM: EJ AKTIV'); }
 }
 
 function releaseWakeLock() {
@@ -642,21 +653,13 @@ function setWakeLockBadge(active, text) {
   badge.className = 'wakelock-badge' + (active ? ' active' : '');
 }
 
-// Re-acquire wake lock if page becomes visible again (e.g. after tab switch)
 document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'visible' && running) {
-    await requestWakeLock();
-  }
+  if (document.visibilityState === 'visible' && running) await requestWakeLock();
 });
 
-function minuteSignal() {
-  playSound('signal');
-  flashScreen();
-}
-
-function warningBeep() {
-  playSound('tick');
-}
+// ─── TIMER FUNCTIONS ───
+function minuteSignal() { playSound('signal'); flashScreen(); }
+function warningBeep() { playSound('tick'); }
 
 function flashScreen() {
   const f = document.getElementById('flash');
@@ -664,7 +667,6 @@ function flashScreen() {
   setTimeout(() => f.classList.remove('pop'), 200);
 }
 
-// Build schedule icons
 function buildSchedule() {
   const row = document.getElementById('scheduleRow');
   row.innerHTML = '';
@@ -672,32 +674,25 @@ function buildSchedule() {
     const d = document.createElement('div');
     d.className = 'sched-item';
     d.id = 'sched' + i;
-    d.innerHTML = `<div class="sched-icon">${ex.icon}</div><div class="sched-num">Min ${i+1}</div>`;
+    d.innerHTML = `<div class="sched-icon">${ex.icon || '💪'}</div><div class="sched-num">Min ${i+1}</div>`;
     row.appendChild(d);
   });
 }
 
 function updateScheduleHighlight(exIdx) {
   EXERCISES.forEach((_, i) => {
-    const el = document.getElementById('sched' + i);
-    el.className = 'sched-item' + (i === exIdx ? ' active' : '');
+    document.getElementById('sched' + i).className = 'sched-item' + (i === exIdx ? ' active' : '');
   });
 }
 
-function getExerciseIndex(minute) {
-  return minute % EXERCISES_PER_ROUND;
-}
-
-function getRound(minute) {
-  return Math.floor(minute / EXERCISES_PER_ROUND) + 1;
-}
+function getExerciseIndex(minute) { return minute % EXERCISES_PER_ROUND; }
+function getRound(minute) { return Math.floor(minute / EXERCISES_PER_ROUND) + 1; }
 
 function updateCards(minute) {
   const exIdx = getExerciseIndex(minute);
   const nextMinute = minute + 1;
   const nextExIdx = getExerciseIndex(nextMinute);
   const round = getRound(minute);
-
   const cur = EXERCISES[exIdx];
   const nxt = EXERCISES[nextExIdx];
 
@@ -705,7 +700,7 @@ function updateCards(minute) {
   cc.querySelector('.ex-minute').textContent = `Minut ${minute + 1} · Varv ${round}`;
   cc.querySelector('.ex-name').textContent = cur.name;
   cc.querySelector('.ex-reps').textContent = cur.reps;
-  cc.querySelector('.ex-tip').textContent = cur.tip;
+  cc.querySelector('.ex-tip').textContent = cur.tip || '';
 
   const nc = document.getElementById('nextCard');
   if (nextMinute < TOTAL_MINUTES) {
@@ -713,7 +708,7 @@ function updateCards(minute) {
     nc.querySelector('.ex-minute').textContent = `Härnäst · Minut ${nextMinute + 1}`;
     nc.querySelector('.ex-name').textContent = nxt.name;
     nc.querySelector('.ex-reps').textContent = nxt.reps;
-    nc.querySelector('.ex-tip').textContent = nxt.tip;
+    nc.querySelector('.ex-tip').textContent = nxt.tip || '';
   } else {
     nc.style.display = 'none';
   }
@@ -725,66 +720,40 @@ function updateCards(minute) {
 function updateLaps(completedRounds) {
   for (let i = 0; i < 5; i++) {
     const d = document.getElementById('lap' + i);
-    d.className = 'lap-dot';
-    if (i < completedRounds) d.classList.add('done');
-    else if (i === completedRounds) d.classList.add('current');
+    d.className = 'lap-dot' + (i < completedRounds ? ' done' : i === completedRounds ? ' current' : '');
   }
 }
 
 function formatTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return m + ':' + String(s).padStart(2, '0');
+  return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
 }
 
 function updateClock() {
   const display = document.getElementById('clockDisplay');
   const block = document.getElementById('clockBlock');
   const label = document.getElementById('clockLabel');
-  const totalEl = document.getElementById('totalDisplay');
-  const roundEl = document.getElementById('roundDisplay');
-  const minEl = document.getElementById('minDisplay');
 
   display.textContent = formatTime(secondsLeft);
-  totalEl.textContent = formatTime(totalSecondsLeft);
-  roundEl.textContent = getRound(currentMinute) + '/5';
-  minEl.textContent = (currentMinute + 1) + '/20';
+  document.getElementById('totalDisplay').textContent = formatTime(totalSecondsLeft);
+  document.getElementById('roundDisplay').textContent = getRound(currentMinute) + '/5';
+  document.getElementById('minDisplay').textContent = (currentMinute + 1) + '/20';
+  block.style.setProperty('--progress', (60 - secondsLeft) / 60);
 
-  // Progress bar on clock block
-  const progress = (60 - secondsLeft) / 60;
-  block.style.setProperty('--progress', progress);
-
-  // Color states
   display.className = 'clock-time';
-  if (secondsLeft <= 5 && secondsLeft > 0) {
-    display.classList.add('warning');
-    label.textContent = 'Vila snart slut!';
-  } else if (secondsLeft === 60 || secondsLeft === 0) {
-    display.classList.add('go');
-    label.textContent = 'KÖR!';
-  } else {
-    label.textContent = 'Vila / förbered';
-  }
+  if (secondsLeft <= 5 && secondsLeft > 0) { display.classList.add('warning'); label.textContent = 'Vila snart slut!'; }
+  else if (secondsLeft === 60 || secondsLeft === 0) { display.classList.add('go'); label.textContent = 'KÖR!'; }
+  else { label.textContent = 'Vila / förbered'; }
 }
 
 function tick() {
   if (!running) return;
-
-  if (secondsLeft <= 5 && secondsLeft > 0) {
-    warningBeep();
-  }
-
+  if (secondsLeft <= 5 && secondsLeft > 0) warningBeep();
   secondsLeft--;
   totalSecondsLeft--;
   updateClock();
-
   if (secondsLeft < 0) {
-    // Next minute
     currentMinute++;
-    if (currentMinute >= TOTAL_MINUTES) {
-      finishWorkout();
-      return;
-    }
+    if (currentMinute >= TOTAL_MINUTES) { finishWorkout(); return; }
     secondsLeft = 59;
     minuteSignal();
     updateCards(currentMinute);
@@ -792,25 +761,13 @@ function tick() {
   }
 }
 
-let countdownInterval = null;
-
 function startTimer() {
   if (running) return;
-
-  // iOS Safari: initAudio() MUST be called synchronously here — no .then(), no setTimeout.
-  // The AudioContext unlock only works during the direct user gesture callstack.
   initAudio();
-
-  document.getElementById('btnStart').disabled = true;
-  _startAfterAudio();
-}
-
-function _startAfterAudio() {
   requestWakeLock();
 
   if (paused) {
-    running = true;
-    paused = false;
+    running = true; paused = false;
     timer = setInterval(tick, 1000);
     document.getElementById('btnStart').disabled = true;
     document.getElementById('btnPause').disabled = false;
@@ -818,15 +775,14 @@ function _startAfterAudio() {
     return;
   }
 
-  // Fresh start — 5-second countdown
   document.getElementById('btnStart').disabled = true;
   document.getElementById('btnPause').disabled = true;
   document.getElementById('statusBar').innerHTML = 'Gör dig redo · <span>Startar snart!</span>';
 
   let count = 5;
   const overlay = document.getElementById('countdownOverlay');
-  const numEl   = document.getElementById('countdownNum');
-  const lblEl   = document.getElementById('countdownLabel');
+  const numEl = document.getElementById('countdownNum');
+  const lblEl = document.getElementById('countdownLabel');
 
   overlay.classList.add('show');
   numEl.textContent = count;
@@ -849,8 +805,7 @@ function _startAfterAudio() {
       playSound('go');
       setTimeout(() => {
         overlay.classList.remove('show');
-        running = true;
-        paused = false;
+        running = true; paused = false;
         minuteSignal();
         updateCards(0);
         secondsLeft = 59;
@@ -867,8 +822,7 @@ function _startAfterAudio() {
 
 function pauseTimer() {
   if (!running) return;
-  running = false;
-  paused = true;
+  running = false; paused = true;
   clearInterval(timer);
   releaseWakeLock();
   document.getElementById('btnStart').disabled = false;
@@ -878,15 +832,13 @@ function pauseTimer() {
 }
 
 function resetTimer() {
-  running = false;
-  paused = false;
+  running = false; paused = false;
   clearInterval(timer);
   clearInterval(countdownInterval);
   document.getElementById('countdownOverlay').classList.remove('show');
   releaseWakeLock();
-  currentMinute = 0;
-  secondsLeft = 60;
-  totalSecondsLeft = TOTAL_MINUTES * 60;
+
+  currentMinute = 0; secondsLeft = 60; totalSecondsLeft = TOTAL_MINUTES * 60;
 
   document.getElementById('btnStart').disabled = false;
   document.getElementById('btnStart').textContent = '▶ Start';
@@ -898,47 +850,34 @@ function resetTimer() {
   document.getElementById('roundDisplay').textContent = '–';
   document.getElementById('minDisplay').textContent = '–';
   document.getElementById('clockBlock').style.setProperty('--progress', 0);
-  document.getElementById('statusBar').innerHTML = 'Tryck START för att börja träningen · <span>5 varv × 4 övningar</span>';
+  document.getElementById('statusBar').innerHTML = 'Tryck START för att börja · <span>5 varv × 4 övningar</span>';
 
-  // Reset cards
   const cc = document.getElementById('currentCard');
   cc.querySelector('.ex-minute').textContent = 'Minut –';
   cc.querySelector('.ex-name').textContent = 'Tryck START';
   cc.querySelector('.ex-reps').textContent = '';
-  cc.querySelector('.ex-tip').textContent = 'Välj en bekväm plats och var redo att börja på pistongen!';
-  document.getElementById('nextCard').style.display = '';
+  cc.querySelector('.ex-tip').textContent = 'Välj en bekväm plats och var redo!';
   const nc = document.getElementById('nextCard');
+  nc.style.display = '';
   nc.querySelector('.ex-minute').textContent = 'Minut –';
   nc.querySelector('.ex-name').textContent = '–';
   nc.querySelector('.ex-reps').textContent = '';
   nc.querySelector('.ex-tip').textContent = '';
 
-  // Reset laps & schedule
   for (let i = 0; i < 5; i++) document.getElementById('lap' + i).className = 'lap-dot';
-  EXERCISES.forEach((_, i) => document.getElementById('sched' + i).className = 'sched-item');
+  if (EXERCISES.length) EXERCISES.forEach((_, i) => { const el = document.getElementById('sched' + i); if (el) el.className = 'sched-item'; });
 }
 
 function finishWorkout() {
   running = false;
   clearInterval(timer);
   playSound('finish');
-  // All laps done
-  for (let i = 0; i < 5; i++) {
-    const d = document.getElementById('lap' + i);
-    d.className = 'lap-dot done';
-  }
-  setTimeout(() => {
-    document.getElementById('finishOverlay').classList.add('show');
-  }, 1200);
+  for (let i = 0; i < 5; i++) document.getElementById('lap' + i).className = 'lap-dot done';
+  setTimeout(() => document.getElementById('finishOverlay').classList.add('show'), 1200);
 }
 
-// Init
-buildSchedule();
-if ('wakeLock' in navigator) {
-  setWakeLockBadge(false, 'SKÄRM: AKTIVERAS VID START');
-} else {
-  setWakeLockBadge(false, 'SKÄRM: EJ STÖDD');
-}
+// Init — check if there's a remembered profile (optional, start fresh each session)
+// We always show profile screen on load for clarity
 </script>
 </body>
 </html>
