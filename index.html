@@ -358,6 +358,12 @@
 </style>
 </head>
 <body>
+<!-- iOS fix: a looping silent audio element forces Web Audio onto the media channel,
+     so sound plays through the speaker regardless of mute/ringer switch -->
+<audio id="iosSilence" loop playsinline style="display:none">
+  <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM1OC41NAAAAAAAAAAAAAAAACQDkAAAAAAAAbBRajkAAAAAAAAAAAAAAAAAAAAA/+MYxAANCAZhUUAAAmlTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mp3">
+</audio>
+
 <div class="wrap">
   <header>
     <div class="logo">EMOM</div>
@@ -527,6 +533,11 @@ function initAudio() {
   _reverb.connect(_ac.destination);
 
   _audioReady = true;
+
+  // iOS speaker fix: play silent looping audio to force Web Audio onto
+  // the media audio session — otherwise sound only comes through headphones
+  const silence = document.getElementById('iosSilence');
+  if (silence) silence.play().catch(() => {});
 }
 
 // Bell-like tone: triangle wave + sharp attack transient + harmonic + reverb
