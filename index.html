@@ -529,49 +529,49 @@ function initAudio() {
   _audioReady = true;
 }
 
-// Piano-like tone: sine + harmonic + reverb tail
-function _piano(freq, duration, vol, delay) {
+// Bell-like tone: triangle wave + sharp attack transient + harmonic + reverb
+// Triangle = clearer than sine (cuts through background noise) but gentler than square
+// The sharp transient at attack is what makes the brain "notice" the sound
+function _bell(freq, duration, vol, delay) {
   if (!_ac || !_audioReady) return;
-  // Use a small offset so notes never start at exactly currentTime=0
   const t0 = _ac.currentTime + 0.02 + (delay || 0);
-  const attack = 0.01;
-  const release = duration * 1.8;
-
   const dest = _ac.destination;
 
-  // --- Main tone ---
+  // --- Main body: triangle wave, medium decay ---
   const osc = _ac.createOscillator();
   const g = _ac.createGain();
-  osc.type = 'sine';
+  osc.type = 'triangle';
   osc.frequency.value = freq;
+  // Sharp transient at attack (punchy click) then immediate decay
   g.gain.setValueAtTime(0, t0);
-  g.gain.linearRampToValueAtTime(vol, t0 + attack);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + release);
+  g.gain.linearRampToValueAtTime(vol, t0 + 0.004);   // very fast attack = punch
+  g.gain.exponentialRampToValueAtTime(vol * 0.4, t0 + 0.04);  // quick initial drop
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);  // tail off
   osc.connect(g); g.connect(dest);
-  osc.start(t0); osc.stop(t0 + release + 0.05);
+  osc.start(t0); osc.stop(t0 + duration + 0.05);
 
-  // --- Second harmonic (body) ---
+  // --- Overtone: adds shimmer/presence, helps cut through noise ---
   const osc2 = _ac.createOscillator();
   const g2 = _ac.createGain();
   osc2.type = 'sine';
-  osc2.frequency.value = freq * 2;
+  osc2.frequency.value = freq * 3; // third harmonic = bell character
   g2.gain.setValueAtTime(0, t0);
-  g2.gain.linearRampToValueAtTime(vol * 0.15, t0 + attack);
-  g2.gain.exponentialRampToValueAtTime(0.0001, t0 + release * 0.5);
+  g2.gain.linearRampToValueAtTime(vol * 0.18, t0 + 0.004);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t0 + duration * 0.4);
   osc2.connect(g2); g2.connect(dest);
-  osc2.start(t0); osc2.stop(t0 + release * 0.5 + 0.05);
+  osc2.start(t0); osc2.stop(t0 + duration * 0.4 + 0.05);
 
-  // --- Reverb send ---
+  // --- Reverb tail (warm room feel, lower volume) ---
   if (_reverb) {
     const osc3 = _ac.createOscillator();
     const g3 = _ac.createGain();
-    osc3.type = 'sine';
+    osc3.type = 'triangle';
     osc3.frequency.value = freq;
     g3.gain.setValueAtTime(0, t0);
-    g3.gain.linearRampToValueAtTime(vol * 0.25, t0 + attack);
-    g3.gain.exponentialRampToValueAtTime(0.0001, t0 + release);
+    g3.gain.linearRampToValueAtTime(vol * 0.15, t0 + 0.004);
+    g3.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
     osc3.connect(g3); g3.connect(_reverb);
-    osc3.start(t0); osc3.stop(t0 + release + 0.05);
+    osc3.start(t0); osc3.stop(t0 + duration + 0.05);
   }
 }
 
@@ -583,20 +583,25 @@ const NOTES = {
 function playSound(name) {
   if (!_audioReady) return;
   if (name === 'tick') {
-    _piano(NOTES.G3, 0.35, 1.2, 0);
+    // Single mid-range bell — present but not jarring
+    _bell(NOTES.C4, 0.5, 0.7, 0);
   } else if (name === 'signal') {
-    _piano(NOTES.C4, 0.55, 1.4, 0);
-    _piano(NOTES.E4, 0.55, 1.3, 0.25);
-    _piano(NOTES.G4, 0.85, 1.5, 0.50);
+    // Three ascending bells — clearly distinct, easy to notice
+    _bell(NOTES.C4, 0.6, 0.75, 0);
+    _bell(NOTES.E4, 0.6, 0.75, 0.22);
+    _bell(NOTES.G4, 0.9, 0.80, 0.44);
   } else if (name === 'go') {
-    _piano(NOTES.C4, 1.0, 1.4, 0);
-    _piano(NOTES.E4, 1.0, 1.2, 0.05);
-    _piano(NOTES.G4, 1.0, 1.1, 0.10);
+    // Bright chord — unmistakable start signal
+    _bell(NOTES.C4, 1.0, 0.80, 0);
+    _bell(NOTES.E4, 1.0, 0.70, 0.04);
+    _bell(NOTES.G4, 1.0, 0.65, 0.08);
+    _bell(NOTES.C5, 1.0, 0.60, 0.12);
   } else if (name === 'finish') {
-    _piano(NOTES.C4, 0.6, 1.3, 0);
-    _piano(NOTES.E4, 0.6, 1.3, 0.22);
-    _piano(NOTES.G4, 0.6, 1.3, 0.44);
-    _piano(NOTES.C5, 1.4, 1.5, 0.66);
+    // Triumphant ascending arpeggio
+    _bell(NOTES.C4, 0.7, 0.75, 0);
+    _bell(NOTES.E4, 0.7, 0.75, 0.20);
+    _bell(NOTES.G4, 0.7, 0.75, 0.40);
+    _bell(NOTES.C5, 1.5, 0.85, 0.60);
   }
 }
 
