@@ -496,10 +496,12 @@ let _reverb = null;
 let _audioReady = false;
 
 function initAudio() {
-  if (_audioReady) return Promise.resolve();
+  // iOS Safari: AudioContext MUST be created synchronously in the touch/click handler.
+  // Never create it inside .then() or setTimeout — iOS will block audio.
+  if (_audioReady) return;
   _ac = new (window.AudioContext || window.webkitAudioContext)();
 
-  // Create a simple reverb using a decaying noise buffer
+  // Build reverb impulse synchronously
   const reverbLen = _ac.sampleRate * 1.8;
   const reverbBuf = _ac.createBuffer(2, reverbLen, _ac.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
@@ -514,8 +516,8 @@ function initAudio() {
 
   _audioReady = true;
 
-  if (_ac.state === 'suspended') return _ac.resume();
-  return Promise.resolve();
+  // Resume if suspended (some browsers start suspended)
+  if (_ac.state === 'suspended') _ac.resume();
 }
 
 // Play a piano-like tone: sine wave + soft attack + exponential release + reverb
@@ -777,11 +779,12 @@ let countdownInterval = null;
 function startTimer() {
   if (running) return;
 
-  // Init audio on user gesture (required by browsers), then start countdown
+  // iOS Safari: initAudio() MUST be called synchronously here — no .then(), no setTimeout.
+  // The AudioContext unlock only works during the direct user gesture callstack.
+  initAudio();
+
   document.getElementById('btnStart').disabled = true;
-  initAudio().then(() => {
-    _startAfterAudio();
-  });
+  _startAfterAudio();
 }
 
 function _startAfterAudio() {
