@@ -54,11 +54,11 @@
   .ex-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 8vw, 38px); color: var(--text); letter-spacing: 2px; line-height: 1; margin-bottom: 6px; }
   .ex-reps { font-family: 'Bebas Neue', sans-serif; font-size: clamp(22px, 6vw, 28px); color: var(--accent); letter-spacing: 1px; }
 
-  .next-card { background: var(--surface); border: 1px solid #2a2a2a; border-radius: 4px; padding: 12px 16px; margin-bottom: 10px; }
-  .next-label { font-size: 9px; letter-spacing: 3px; color: #444; text-transform: uppercase; margin-bottom: 5px; }
+  .next-card { background: var(--surface); border: 1px solid #444; border-radius: 4px; padding: 12px 16px; margin-bottom: 10px; }
+  .next-label { font-size: 9px; letter-spacing: 3px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
   .next-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .next-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #555; letter-spacing: 2px; line-height: 1; }
-  .next-reps { font-size: 13px; color: #444; flex-shrink: 0; }
+  .next-name { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: #bbb; letter-spacing: 2px; line-height: 1; }
+  .next-reps { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #999; flex-shrink: 0; letter-spacing: 1px; }
 
   .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
   .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 10px 8px; text-align: center; }
@@ -99,6 +99,13 @@
   .editor-field input:focus { border-color: var(--accent); }
   .editor-save { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; font-weight: 500; margin-top: 8px; }
   .editor-save:hover { background: #d4e832; }
+  .editor-card { position: relative; }
+  .editor-card-hdr { display: flex; align-items: center; justify-content: space-between; }
+  .btn-remove-ex { background: transparent; border: 1px solid #333; border-radius: 3px; color: #555; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; padding: 3px 8px; cursor: pointer; transition: all 0.15s; }
+  .btn-remove-ex:hover { border-color: #ff4d4d; color: #ff4d4d; }
+  .btn-add-ex { width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--border); border-radius: 4px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; margin-bottom: 12px; }
+  .btn-add-ex:hover { border-color: var(--accent); color: var(--accent); }
+  .editor-count-info { font-size: 9px; letter-spacing: 2px; color: var(--muted); text-align: center; margin-bottom: 12px; }
 
   .countdown-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 90; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .countdown-overlay.show { display: flex; }
@@ -162,13 +169,7 @@
     <div class="stat-box"><div class="stat-val" id="minDisplay">–</div><div class="stat-lbl">Minut</div></div>
   </div>
 
-  <div class="lap-dots">
-    <div class="lap-dot" id="lap0"></div>
-    <div class="lap-dot" id="lap1"></div>
-    <div class="lap-dot" id="lap2"></div>
-    <div class="lap-dot" id="lap3"></div>
-    <div class="lap-dot" id="lap4"></div>
-  </div>
+  <div class="lap-dots" id="lapDots"></div>
 
   <div class="controls">
     <button class="btn btn-primary" id="btnStart" onclick="startTimer()">▶ Start</button>
@@ -234,6 +235,10 @@ function selectProfile(name) {
   resetTimer();
 }
 
+function updateTagline() {
+  // no tagline element in this version — info shown in stats
+}
+
 function switchProfile() {
   if (running) return;
   resetTimer();
@@ -241,38 +246,86 @@ function switchProfile() {
   document.getElementById('profileScreen').classList.remove('hidden');
 }
 
-function openEditor() {
-  if (running) return;
-  document.getElementById('editorSub').textContent = currentProfile + 's övningar';
+// Editor — with add/remove support
+let _editExercises = []; // working copy while editing
+
+function renderEditorCards() {
   const c = document.getElementById('editorCards');
+  const totalMin = _editExercises.length * 5;
   c.innerHTML = '';
-  EXERCISES.forEach((ex,i) => {
-    c.innerHTML += `<div class="editor-card">
-      <div class="editor-card-hdr">Minut ${i+1}</div>
+  c.innerHTML += `<div class="editor-count-info">${_editExercises.length} ÖVNINGAR · 5 VARV · ${totalMin} MIN TOTALT</div>`;
+  _editExercises.forEach((ex, i) => {
+    c.innerHTML += `<div class="editor-card" id="ecard${i}">
+      <div class="editor-card-hdr">
+        <span style="font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase">Minut ${i+1}</span>
+        ${_editExercises.length > 2 ? `<button class="btn-remove-ex" onclick="removeExercise(${i})">✕ Ta bort</button>` : ''}
+      </div>
       <div class="editor-field"><label>Namn</label><input id="en${i}" value="${ex.name}"></div>
       <div class="editor-field"><label>Reps</label><input id="er${i}" value="${ex.reps}"></div>
     </div>`;
   });
+  if (_editExercises.length < 6) {
+    c.innerHTML += `<button class="btn-add-ex" onclick="addExercise()">+ Lägg till övning</button>`;
+  }
+}
+
+function openEditor() {
+  if (running) return;
+  document.getElementById('editorSub').textContent = currentProfile + 's övningar';
+  _editExercises = JSON.parse(JSON.stringify(EXERCISES));
+  renderEditorCards();
   document.getElementById('editorOverlay').classList.add('show');
+}
+
+function addExercise() {
+  // Save current inputs before adding
+  _editExercises.forEach((ex,i) => {
+    const n=document.getElementById('en'+i)?.value.trim();
+    const r=document.getElementById('er'+i)?.value.trim();
+    if(n) ex.name=n; if(r) ex.reps=r;
+  });
+  _editExercises.push({ name: 'Ny övning', reps: '10 st' });
+  renderEditorCards();
+  // Scroll to bottom and focus new name field
+  setTimeout(() => {
+    const last = _editExercises.length - 1;
+    const inp = document.getElementById('en'+last);
+    if (inp) { inp.focus(); inp.select(); }
+    document.getElementById('editorOverlay').scrollTop = 99999;
+  }, 50);
+}
+
+function removeExercise(idx) {
+  // Save current inputs first
+  _editExercises.forEach((ex,i) => {
+    const n=document.getElementById('en'+i)?.value.trim();
+    const r=document.getElementById('er'+i)?.value.trim();
+    if(n) ex.name=n; if(r) ex.reps=r;
+  });
+  _editExercises.splice(idx, 1);
+  renderEditorCards();
 }
 
 function closeEditor() { document.getElementById('editorOverlay').classList.remove('show'); }
 
 function saveExercises() {
-  EXERCISES.forEach((ex,i) => {
-    const n=document.getElementById('en'+i).value.trim();
-    const r=document.getElementById('er'+i).value.trim();
+  _editExercises.forEach((ex,i) => {
+    const n=document.getElementById('en'+i)?.value.trim();
+    const r=document.getElementById('er'+i)?.value.trim();
     if(n) ex.name=n; if(r) ex.reps=r;
   });
+  EXERCISES = _editExercises;
   localStorage.setItem(getKey(currentProfile), JSON.stringify(EXERCISES));
   closeEditor();
+  resetTimer(); // recalculate totals
 }
 
-const TOTAL_MINUTES = 20;
-const EXERCISES_PER_ROUND = 4;
+const ROUNDS = 5;
 let timer=null, countdownInterval=null;
-let secondsLeft=60, totalSecondsLeft=1200;
+let secondsLeft=60, totalSecondsLeft=0;
 let currentMinute=0, running=false, paused=false;
+
+function getTotalMinutes() { return EXERCISES.length * ROUNDS; }
 
 // AUDIO
 let _ac=null, _reverb=null, _audioReady=false;
@@ -329,8 +382,8 @@ document.addEventListener('visibilitychange',async()=>{if(document.visibilitySta
 
 // TIMER
 function flashScreen(){const f=document.getElementById('flash');f.classList.add('pop');setTimeout(()=>f.classList.remove('pop'),200);}
-function getExIdx(m){return m%EXERCISES_PER_ROUND;}
-function getRound(m){return Math.floor(m/EXERCISES_PER_ROUND)+1;}
+function getExIdx(m){return m%EXERCISES.length;}
+function getRound(m){return Math.floor(m/EXERCISES.length)+1;}
 function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 
 function updateCards(minute) {
@@ -341,7 +394,7 @@ function updateCards(minute) {
   document.getElementById('exName').textContent=cur.name;
   document.getElementById('exReps').textContent=cur.reps;
   const nc=document.getElementById('nextCard');
-  if(minute+1<TOTAL_MINUTES){
+  if(minute+1<getTotalMinutes()){
     nc.style.display='';
     document.getElementById('nextName').textContent=nxt.name;
     document.getElementById('nextReps').textContent=nxt.reps;
@@ -349,14 +402,29 @@ function updateCards(minute) {
   updateLaps(round-1);
 }
 
-function updateLaps(done){for(let i=0;i<5;i++)document.getElementById('lap'+i).className='lap-dot'+(i<done?' done':i===done?' current':'');}
+function updateLaps(done) {
+  const lapRow = document.getElementById('lapDots');
+  // Rebuild dots if count changed
+  if (lapRow.children.length !== ROUNDS) {
+    lapRow.innerHTML = '';
+    for (let i=0;i<ROUNDS;i++) {
+      const d=document.createElement('div');
+      d.id='lap'+i; d.className='lap-dot';
+      lapRow.appendChild(d);
+    }
+  }
+  for(let i=0;i<ROUNDS;i++) {
+    const el=document.getElementById('lap'+i);
+    if(el) el.className='lap-dot'+(i<done?' done':i===done?' current':'');
+  }
+}
 
 function updateClock(){
   const disp=document.getElementById('timerDisplay');
   disp.textContent=fmt(secondsLeft);
   document.getElementById('totalDisplay').textContent=fmt(totalSecondsLeft);
-  document.getElementById('roundDisplay').textContent=getRound(currentMinute)+'/5';
-  document.getElementById('minDisplay').textContent=(currentMinute+1)+'/20';
+  document.getElementById('roundDisplay').textContent=getRound(currentMinute)+'/'+ROUNDS;
+  document.getElementById('minDisplay').textContent=(currentMinute+1)+'/'+getTotalMinutes();
   document.getElementById('topBar').style.transform=`scaleX(${(60-secondsLeft)/60})`;
   disp.className='main-card-timer';
   if(secondsLeft<=5&&secondsLeft>0) disp.classList.add('warning');
@@ -370,7 +438,7 @@ function tick(){
   updateClock();
   if(secondsLeft<0){
     currentMinute++;
-    if(currentMinute>=TOTAL_MINUTES){finishWorkout();return;}
+    if(currentMinute>=getTotalMinutes()){finishWorkout();return;}
     secondsLeft=59;
     playSound('signal'); flashScreen();
     updateCards(currentMinute); updateClock();
@@ -409,7 +477,7 @@ function startTimer(){
         running=true;paused=false;
         playSound('signal');flashScreen();
         updateCards(0);
-        secondsLeft=59;totalSecondsLeft=TOTAL_MINUTES*60-1;
+        secondsLeft=59;totalSecondsLeft=getTotalMinutes()*60-1;
         updateClock();
         timer=setInterval(tick,1000);
         document.getElementById('btnStart').disabled=true;
@@ -433,7 +501,7 @@ function resetTimer(){
   clearInterval(timer);clearInterval(countdownInterval);
   document.getElementById('countdownOverlay').classList.remove('show');
   releaseWakeLock();
-  currentMinute=0;secondsLeft=60;totalSecondsLeft=1200;
+  currentMinute=0;secondsLeft=60;totalSecondsLeft=getTotalMinutes()*60;
   document.getElementById('btnStart').disabled=false;
   document.getElementById('btnStart').textContent='▶ Start';
   document.getElementById('btnPause').disabled=true;
@@ -443,20 +511,20 @@ function resetTimer(){
   document.getElementById('cardMeta').textContent='Klar att köra?';
   document.getElementById('exName').textContent='Tryck START';
   document.getElementById('exReps').textContent='';
-  document.getElementById('totalDisplay').textContent='20:00';
+  document.getElementById('totalDisplay').textContent=fmt(getTotalMinutes()*60);
   document.getElementById('roundDisplay').textContent='–';
   document.getElementById('minDisplay').textContent='–';
   document.getElementById('nextCard').style.display='';
   document.getElementById('nextName').textContent='–';
   document.getElementById('nextReps').textContent='';
-  for(let i=0;i<5;i++) document.getElementById('lap'+i).className='lap-dot';
+  updateLaps(-1); // reset all dots
 }
 
 function finishWorkout(){
   running=false;clearInterval(timer);
   playSound('finish');
   for(let i=0;i<5;i++) document.getElementById('lap'+i).className='lap-dot done';
-  document.getElementById('finishSub').textContent=currentProfile+' · 20 min · 5 varv klara!';
+  document.getElementById('finishSub').textContent=currentProfile+' · '+getTotalMinutes()+' min · '+ROUNDS+' varv klara!';
   setTimeout(()=>document.getElementById('finishOverlay').classList.add('show'),1200);
 }
 </script>
